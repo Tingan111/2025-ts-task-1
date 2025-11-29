@@ -2,12 +2,12 @@
 // 說明：請為以下變數補上正確型別（數字、字串、布林、字串陣列、帶型別的物件）。
 // 目標：能直接通過型別檢查與基本值檢查。
 
-export const plantId /* TODO: 型別 */ = 101;
-export const plantName /* TODO: 型別 */ = "琴葉榕（Fiddle Leaf Fig）";
-export const isAvailable /* TODO: 型別 */ = true;
-export const tags /* TODO: 型別 */ = ["大型植栽", "室內明亮散射光"];
-export const plant /* TODO: 物件型別 */ = { id: 101, name: "琴葉榕", price: 2500 };
-export const cart /* TODO: 陣列包物件的型別定義 > */ = [
+export const plantId: number = 101;
+export const plantName: string = "琴葉榕（Fiddle Leaf Fig）";
+export const isAvailable: boolean = true;
+export const tags: Array<string> = ["大型植栽", "室內明亮散射光"];
+export const plant: { id: number, name: string, price: number } = { id: 101, name: "琴葉榕", price: 2500 };
+export const cart: Array<{ sku: string, name: string, qty: number, price: number, potColor?: string }> = [
   { sku: "PLANT-1001", name: "虎尾蘭", qty: 2, price: 480 },
   { sku: "PLANT-2001", name: "龜背芋", qty: 1, price: 1200, potColor: "白" },
 ];
@@ -17,20 +17,23 @@ export const cart /* TODO: 陣列包物件的型別定義 > */ = [
 // 目標：理解 Enum 定義與反向映射的寫法。
 
 export enum PlantCategory {
-  
+  LargePlant,
+  Tabletop,
+  Hanging,
+  Succulent,
 }
-export const catKeyName: string = PlantCategory[/* TODO: 取得 LargePlant 的數值 */ 0];
+export const catKeyName: string = PlantCategory[PlantCategory.LargePlant];
 
 
 // --- 題目三：type（& 組合） ---
 // 說明：請用 type 定義 BasicPlant 與 StockInfo，再用 & 組合為 OnShelfPlant，建立範例變數。
 // 目標：理解 type 宣告與交叉型別的寫法。
 
-export type BasicPlant = /* TODO: { id: 型別; name: 型別; price: 型別 } */ any;
-export type StockInfo = /* TODO: { sku: 型別; quantity: 型別 } */ any;
-export type OnShelfPlant = /* TODO: BasicPlant, StockInfo 組合 */ any;
+export type BasicPlant = { id: number; name: string; price: number };
+export type StockInfo = { sku: string; quantity: number };
+export type OnShelfPlant = BasicPlant & StockInfo;
 
-export const snakePlant /* TODO: OnShelfPlant */ = {
+export const snakePlant: OnShelfPlant = {
   id: 2,
   name: "虎尾蘭",
   price: 480,
@@ -42,11 +45,20 @@ export const snakePlant /* TODO: OnShelfPlant */ = {
 // --- 題目四：interface（extends 組合） ---
 // 說明：定義 Price 與 Shippable，PlantItem 需 extends 兩者並包含 id/name。
 // 目標：理解介面擴充多重介面的寫法。
-export interface Price { /* TODO: price: 型別; currency:"TWD"|"USD" */ }
-export interface Shippable { /* TODO: weightKg: 型別; shipFrom: 型別 */ }
-// export interface PlantItem 組合 Price, Shippable 並包含 id/name
+export interface Price {
+  price: number;
+  currency: "TWD"|"USD";
+}
+export interface Shippable {
+  weightKg: number;
+  shipFrom: string
+}
+export interface PlantItem extends Price, Shippable {
+  id: number,
+  name: string
+}
 
-export const fiddleLeafFig /* TODO: PlantItem */ = {
+export const fiddleLeafFig: PlantItem = {
   id: 101,
   name: "琴葉榕",
   price: 2500,
@@ -61,11 +73,11 @@ export const fiddleLeafFig /* TODO: PlantItem */ = {
 // 目標：以 type 定義函式型別並實作。
 export type CartItem = { price: number; qty: number };
 export type Coupon = { type: "percent" | "cash"; amount: number };
-export type CalcTotalFn = /* TODO: (參數型別) => 型別 */ any;
+export type CalcTotalFn = (items:CartItem[], coupon?:Coupon)=>number;
 
-export const calcTotal /* TODO: CalcTotalFn */ = (items, coupon) => {
+export const calcTotal : CalcTotalFn = (items, coupon) => {
   const subtotal = items.reduce((sum, it) => sum + it.price * it.qty, 0);
-  if (!coupon) return subtotal; 
+  if (!coupon) return subtotal;
   if (coupon.type === "percent") return Math.max(0, Math.round(subtotal * (1 - coupon.amount / 100)));
   return Math.max(0, subtotal - coupon.amount);
 };
@@ -76,11 +88,12 @@ export const calcTotal /* TODO: CalcTotalFn */ = (items, coupon) => {
 // API: https://fakestoreapi.com/products
 // 目標：理解泛型定義與應用。
 import axios from 'axios'; /* TODO */
-export type PlantDTO = { 
-  id: number; 
-  title: string; 
-  price: number; 
-  category: string; 
+import { log } from 'console';
+export type PlantDTO = {
+  id: number;
+  title: string;
+  price: number;
+  category: string;
 };
 
 export const fetchPlants = async () /* TODO */ => {
