@@ -47,7 +47,7 @@ export const snakePlant: OnShelfPlant = {
 // 目標：理解介面擴充多重介面的寫法。
 export interface Price {
   price: number;
-  currency: "TWD"|"USD";
+  currency: "TWD" | "USD";
 }
 export interface Shippable {
   weightKg: number;
@@ -73,9 +73,9 @@ export const fiddleLeafFig: PlantItem = {
 // 目標：以 type 定義函式型別並實作。
 export type CartItem = { price: number; qty: number };
 export type Coupon = { type: "percent" | "cash"; amount: number };
-export type CalcTotalFn = (items:CartItem[], coupon?:Coupon)=>number;
+export type CalcTotalFn = (items: CartItem[], coupon?: Coupon) => number;
 
-export const calcTotal : CalcTotalFn = (items, coupon) => {
+export const calcTotal: CalcTotalFn = (items, coupon) => {
   const subtotal = items.reduce((sum, it) => sum + it.price * it.qty, 0);
   if (!coupon) return subtotal;
   if (coupon.type === "percent") return Math.max(0, Math.round(subtotal * (1 - coupon.amount / 100)));
@@ -87,8 +87,8 @@ export const calcTotal : CalcTotalFn = (items, coupon) => {
 // 說明：import axios 與 AxiosResponse，定義 PlantDTO，實作 fetchPlants。
 // API: https://fakestoreapi.com/products
 // 目標：理解泛型定義與應用。
-import axios from 'axios'; /* TODO */
-import { log } from 'console';
+import axios from 'axios';
+import type { AxiosResponse } from 'axios';
 export type PlantDTO = {
   id: number;
   title: string;
@@ -96,19 +96,31 @@ export type PlantDTO = {
   category: string;
 };
 
-export const fetchPlants = async () /* TODO */ => {
+export const fetchPlants = async (): Promise<AxiosResponse<PlantDTO[]>> => {
   return axios.get('https://fakestoreapi.com/products');
 }
+console.log(await fetchPlants());
+
 
 
 
 // --- 題目七：Required、Partial ---
 // 說明：updatePlant(input) 接受部分更新，實際回傳需是 Required<PlantBase>。
 // 目標：掌握 Partial/Required 的互補與回傳保證。
-export type PlantBase = { id: number; name: string; price: number; description?: string };
+export type PlantBase = {
+  id: number;
+  name: string;
+  price: number;
+  description?: string;
+};
 
-export function updatePlant(input: /* TODO */ any): /* TODO */ any {
-  const existing: /* TODO */ any = { id: 1, name: "虎尾蘭", price: 480, description: "耐陰、淨化空氣" };
+export function updatePlant(input: Partial<PlantBase>): Required<PlantBase> {
+  const existing: Required<PlantBase> = {
+    id: 1,
+    name: "虎尾蘭",
+    price: 480,
+    description: "耐陰、淨化空氣"
+  };
   const merged = { ...existing, ...input };
   return {
     id: merged.id,
@@ -122,8 +134,8 @@ export function updatePlant(input: /* TODO */ any): /* TODO */ any {
 // --- 題目八：Record ---
 // 說明：用 Record 表示庫存表。
 // 目標：以字串鍵對應到嚴格結構。
-export type Inventory = /* TODO */ any;
-export const inventory /* TODO */ = {
+export type Inventory = Record<string, number>
+export const inventory: Inventory = {
   "PLANT-1001": 42,
   "PLANT-2001": 8,
 };
@@ -134,11 +146,11 @@ export const inventory /* TODO */ = {
 // 需求：
 // 1) CartPlant：只需 id/name/price
 // 2) PublicPlant：移除重量與出貨地
-export type CartPlant = /* TODO */ any;
-export type PublicPlant = /* TODO */ any;
+export type CartPlant = Pick<PlantItem, "id" | "name" | "price">;
+export type PublicPlant = Omit<PlantItem, "weightKg" | "shipFrom">;
 
-export const cartPlant /* TODO */ = { id: 101, name: "琴葉榕", price: 2500 };
-export const publicPlant /* TODO */ = { id: 101, name: "琴葉榕", price: 2500, currency: "TWD" };
+export const cartPlant: CartPlant = { id: 101, name: "琴葉榕", price: 2500 };
+export const publicPlant: PublicPlant = { id: 101, name: "琴葉榕", price: 2500, currency: "TWD" };
 
 
 // --- 題目十：綜合練習 ---
@@ -156,17 +168,27 @@ export const publicPlant /* TODO */ = { id: 101, name: "琴葉榕", price: 2500,
     - imageUrl: 字串
     - imagesUrl: 字串陣列（非必要）
 */
-
+export type Product = {
+  id: string
+  title: string
+  category: string
+  description: string
+  price: number
+  is_enabled: boolean
+  unit: string
+  imageUrl: string
+  imagesUrl?: string[]
+}
 /*
 2️⃣ 定義 type CreateProduct
 由 Product 衍生，但不包含 id（使用 Omit）
 */
-
+export type CreateProduct = Omit<Product, "id">
 /*
 3️⃣ 定義 type UpdateProduct
 由 Product 衍生，id, title 必須有，其餘皆可選（使用 Partial 與 Omit）
 */
-
+export type UpdateProduct = { id: number, title: string } & Partial<Omit<Product, "id" | "title">>;
 /*
 4️⃣ 實作函式 submitProduct(type, product)
 參數說明：
@@ -177,3 +199,12 @@ export const publicPlant /* TODO */ = { id: 101, name: "琴葉榕", price: 2500,
 create → "新增商品成功：${product.title}"
 update → "更新商品成功：${product.id}"
 */
+export const submitProduct = (
+  type: "create" | "update",
+  product: CreateProduct | UpdateProduct
+): string => {
+  if (type === "create") {
+    return `新增商品成功：${(product as CreateProduct).title}`;
+  }
+  return `更新商品成功：${(product as UpdateProduct).id}`;
+};
